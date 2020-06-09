@@ -182,7 +182,6 @@ class Toplevel1:
 
             if getattr(sys, 'frozen', False):
                 pathname = sys._MEIPASS
-                print("1")
             else:
                 pathname = self.dir
             self.Text1.insert(tk.INSERT, "日志已存放在%s\\log文件夹中" % pathname + "\n")

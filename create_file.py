@@ -14,52 +14,50 @@ def main(postman_file_path,postman_dir_path='.',template_file_path='.'):
     :param template_file_path: 生成python文件所需模板路径
     :return:
     """
-    try:
-        #获取json数据
-        logger.info("postman导出的文件所在路径：%s"%postman_file_path)
-        logger.info("生成python文件所在路径：%s"%postman_dir_path)
-        #logger.info("模板所在路径：%s"%template_file_path)
-        json_data=postman_json_data(postman_file_path)
-        #解析json数据
-        dirs_https=postman_dirpaths_httpdatas(json_data)
-        logger.info("从json中提取的目录路径和http数据：%s"%dirs_https)
-        #生成目录且往生成的文件中写入对应的内容
-        data={
-            "template_file":template_file_path,
-            "file_name":"",
-            "change":{
-                "author":"YD",
-                "time":time.strftime("%Y/%m/%d"),
-                "function_name":"",
-                "url":"",
-                "method":"",
-                "headers":{},
-                "data":{}
-            }
+    #获取json数据
+    logger.info("postman导出的文件所在路径：%s"%postman_file_path)
+    logger.info("生成python文件所在路径：%s"%postman_dir_path)
+    #logger.info("模板所在路径：%s"%template_file_path)
+    json_data=postman_json_data(postman_file_path)
+    #解析json数据
+    dirs_https=postman_dirpaths_httpdatas(json_data)
+    logger.info("从json中提取的目录路径和http数据：%s"%dirs_https)
+    #生成目录且往生成的文件中写入对应的内容
+    data={
+        "template_file":template_file_path,
+        "file_name":"",
+        "change":{
+            "author":"YD",
+            "time":time.strftime("%Y/%m/%d"),
+            "function_name":"",
+            "url":"",
+            "method":"",
+            "headers":{},
+            "data":{}
         }
-        for dir_http in dirs_https:
-            try:
-                dir_data=dir_http["name"]
-                logger.info("文件名：%s"%dir_data)
-                http_data=dir_http["data"]
-                #创建文件目录
-                create_dir(postman_dir_path+dir_data)
-                data["file_name"] = postman_dir_path+dir_data+".py"
-                data["change"]["function_name"]="postman_function"
-                data["change"]["url"]=http_data["url"]
-                data["change"]["method"] = http_data["method"]
-                data["change"]["headers"] = http_data["headers"]
-                data["change"]["data"] = http_data["data"]
-                logger.info("生成文件配置数据：%s"%data)
-            except Exception as e:
-                logger.error("%s"%repr(e))
-            try:
-                template_create_file(data)
-                logger.info("创建文件%s成功"%data["file_name"])
-            except Exception as e:
-                logger.error("创建文件%s失败:%s" % (data["file_name"],repr(e)))
-    except Exception as e:
-        logger.error("%s"%repr(e))
+    }
+    for dir_http in dirs_https:
+        try:
+            dir_data=dir_http["name"]
+            logger.info("文件名：%s"%dir_data)
+            http_data=dir_http["data"]
+            #创建文件目录
+            create_dir(postman_dir_path+dir_data)
+            data["file_name"] = postman_dir_path+dir_data+".py"
+            data["change"]["function_name"]="postman_function"
+            data["change"]["url"]=http_data["url"]
+            data["change"]["method"] = http_data["method"]
+            data["change"]["headers"] = http_data["headers"]
+            data["change"]["data"] = http_data["data"]
+            logger.info("生成文件配置数据：%s"%data)
+        except Exception as e:
+            logger.error("%s"%repr(e))
+        try:
+            template_create_file(data)
+            logger.info("创建文件%s成功"%data["file_name"])
+        except Exception as e:
+            logger.error("创建文件%s失败:%s" % (data["file_name"],repr(e)))
+
 def template_create_file(data):
     """
     通过模版生成文件
@@ -87,7 +85,7 @@ def postman_json_data(postman_file):
     with open(postman_file,"r",encoding="utf-8") as f:
         file_content=f.read()
     postman_json=json.loads(file_content)
-    if not(set(["info","item"]) < set(postman_json.keys())):
+    if not(set(["info","item"]) <= set(postman_json.keys())):
         raise Exception("%s非postman导出的json文件"%postman_file)
     return postman_json
 
@@ -125,7 +123,10 @@ def function_data(http_data):
     :return:
     """
     data={}
-    data["url"]=http_data["url"]["raw"]
+    if not isinstance(http_data["url"],dict):
+        data["url"]=(http_data["url"])
+    else:
+        data["url"]=(http_data["url"]["raw"])
     data["method"] = http_data["method"].lower()
     data["headers"]={}
     for header in http_data["header"]:
